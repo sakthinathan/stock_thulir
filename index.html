@@ -11,6 +11,10 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        /* A more robust hidden class to ensure elements are truly not visible */
+        .hidden {
+            display: none !important;
+        }
         /* Custom styles for input fields to fit table cells and be more readable */
         .table-input {
             width: 100%;
@@ -62,6 +66,7 @@
 <body class="bg-gray-100 flex flex-col items-center justify-start min-h-screen p-4">
 
     <!-- Login Page -->
+    <!-- This container is visible by default -->
     <div id="login-container" class="w-full max-w-md">
         <div class="bg-white p-8 rounded-xl shadow-lg w-full border border-gray-200">
             <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Login</h1>
@@ -85,10 +90,11 @@
     </div>
 
     <!-- Main Application Page (Initially hidden) -->
+    <!-- This container is hidden by default -->
     <div id="main-app-container" class="hidden w-full max-w-6xl">
         <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-6xl border border-gray-200">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-3xl font-bold text-center text-gray-800">Stock Check Ca</h1>
+                <h1 class="text-3xl font-bold text-center text-gray-800">Stock Check Calculator</h1>
                 <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md">Logout</button>
             </div>
             
@@ -191,7 +197,7 @@
 
         // Hardcoded credentials for demonstration
         const credentials = {
-            'user': 'password123'
+            'user': '123'
         };
 
         // State variables
@@ -203,11 +209,15 @@
         let sortDirection = 'asc'; // 'asc' or 'desc'
 
         // --- AUTHENTICATION FUNCTIONS ---
+        // This function is called on successful login
         const showMainApp = () => {
+            // Hides the login page
             loginContainer.classList.add('hidden');
+            // Shows the main application page
             mainAppContainer.classList.remove('hidden');
         };
 
+        // This function is called on logout
         const showLoginPage = () => {
             loginContainer.classList.remove('hidden');
             mainAppContainer.classList.add('hidden');
