@@ -32,85 +32,155 @@
             background-color: #cbd5e0;
             border-radius: 10px;
         }
+        .sort-icon {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            line-height: 1rem;
+            transition: transform 0.2s;
+        }
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+        }
+        .sortable-header:hover .sort-icon {
+            opacity: 1;
+        }
+        /* Custom styles for the login form */
+        #login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
     </style>
     <!-- XLSX library to read Excel files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-start min-h-screen p-4">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-6xl border border-gray-200">
-        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Stock Check Calculator</h1>
-        
-        <p class="text-gray-600 text-center mb-6">
-            Upload an Excel file to see the stock difference and status for each material individually.
-        </p>
 
-        <!-- File input section -->
-        <div class="w-full mb-6">
-            <label for="excel-file" class="block text-gray-700 font-medium mb-2">Choose your Excel file:</label>
-            <input type="file" id="excel-file" accept=".xlsx" class="w-full text-gray-700 bg-white border border-gray-300 rounded-lg cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition duration-150 ease-in-out">
-        </div>
-
-        <!-- Action buttons and filters -->
-        <div id="controls-container" class="mb-6 hidden flex flex-col sm:flex-row gap-4">
-            <!-- Dropdown for filtering -->
-            <div class="flex-1">
-                <label for="brand-filter" class="block text-gray-700 font-medium mb-2">Filter by Brand:</label>
-                <select id="brand-filter" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="all">All Brands</option>
-                </select>
-            </div>
+    <!-- Login Page -->
+    <div id="login-container" class="w-full max-w-md">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full border border-gray-200">
+            <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Login</h1>
+            <p class="text-gray-600 text-center mb-6">Enter your credentials to access the app.</p>
             
-            <!-- Toggle View Button -->
-            <div class="flex-1 self-end">
-                <button id="toggle-view-btn" class="w-full sm:w-auto mt-7 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md">
-                    Hide Detailed View
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="username" class="block text-gray-700 font-medium mb-2">Username:</label>
+                    <input type="text" id="username" name="username" placeholder="Enter username" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-gray-700 font-medium mb-2">Password:</label>
+                    <input type="password" id="password" name="password" placeholder="Enter password" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <p id="login-message" class="text-red-500 text-center mb-4 hidden">Invalid username or password.</p>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-150 ease-in-out shadow-md">
+                    Login
                 </button>
-            </div>
-        </div>
-        
-        <!-- New Column Selector section -->
-        <div id="column-selector-container" class="mb-6 hidden">
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">Select Columns to Display:</h3>
-            <div id="column-selector" class="flex flex-wrap gap-2">
-                <!-- Checkboxes will be dynamically generated here -->
-            </div>
-        </div>
-
-        <!-- Overall Stock Summary section -->
-        <div id="overall-summary-container" class="mt-8 hidden bg-gray-50 p-6 rounded-xl border border-gray-200">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Overall Stock Summary</h2>
-            <div class="flex flex-col sm:flex-row justify-around text-center space-y-4 sm:space-y-0">
-                <div>
-                    <p class="text-gray-600 font-medium">Total Difference in CBB</p>
-                    <p id="overall-diff-cbb" class="text-2xl font-bold text-gray-800">0.00</p>
-                </div>
-                <div>
-                    <p class="text-gray-600 font-medium">Total Difference in PKT</p>
-                    <p id="overall-diff-pkt" class="text-2xl font-bold text-gray-800">0.00</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Display area for results and messages -->
-        <div id="results" class="mt-8">
-            <div id="message" class="text-center text-gray-500">
-                Please upload an Excel file to get started.
-            </div>
+            </form>
         </div>
     </div>
-    
-    <!-- Download Report Button moved to the bottom -->
-    <div class="w-full max-w-6xl mt-6 p-4 flex justify-center">
-        <button id="download-report-btn" class="w-full sm:w-1/3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-150 ease-in-out shadow-md" disabled>
-            Download Report
-        </button>
+
+    <!-- Main Application Page (Initially hidden) -->
+    <div id="main-app-container" class="hidden w-full max-w-6xl">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-6xl border border-gray-200">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-center text-gray-800">Stock Check Ca</h1>
+                <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md">Logout</button>
+            </div>
+            
+            <p class="text-gray-600 text-center mb-6">
+                Upload an Excel file to see the stock difference and status for each material individually.
+            </p>
+
+            <!-- File input section -->
+            <div class="w-full mb-6">
+                <label for="excel-file" class="block text-gray-700 font-medium mb-2">Choose your Excel file:</label>
+                <input type="file" id="excel-file" accept=".xlsx" class="w-full text-gray-700 bg-white border border-gray-300 rounded-lg cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition duration-150 ease-in-out">
+            </div>
+
+            <!-- Action buttons and filters -->
+            <div id="controls-container" class="mb-6 hidden flex flex-col sm:flex-row gap-4">
+                <!-- Dropdown for filtering -->
+                <div class="flex-1">
+                    <label for="brand-filter" class="block text-gray-700 font-medium mb-2">Filter by Brand:</label>
+                    <select id="brand-filter" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">All Brands</option>
+                    </select>
+                </div>
+
+                <!-- Search input -->
+                <div class="flex-1">
+                    <label for="search-input" class="block text-gray-700 font-medium mb-2">Search SKU or Description:</label>
+                    <input type="text" id="search-input" placeholder="e.g., 9001875 or CHOCO STAR" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                
+                <!-- Toggle View Button -->
+                <div class="flex-1 self-end">
+                    <button id="toggle-view-btn" class="w-full sm:w-auto mt-7 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md">
+                        Hide Detailed View
+                    </button>
+                </div>
+            </div>
+            
+            <!-- New Column Selector section -->
+            <div id="column-selector-container" class="mb-6 hidden">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Select Columns to Display:</h3>
+                <div id="column-selector" class="flex flex-wrap gap-2">
+                    <!-- Checkboxes will be dynamically generated here -->
+                </div>
+            </div>
+
+            <!-- Overall Stock Summary section -->
+            <div id="overall-summary-container" class="mt-8 hidden bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Overall Stock Summary</h2>
+                <div class="flex flex-col sm:flex-row justify-around text-center space-y-4 sm:space-y-0">
+                    <div>
+                        <p class="text-gray-600 font-medium">Total Difference in CBB</p>
+                        <p id="overall-diff-cbb" class="text-2xl font-bold text-gray-800">0.00</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 font-medium">Total Difference in PKT</p>
+                        <p id="overall-diff-pkt" class="text-2xl font-bold text-gray-800">0.00</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Display area for results and messages -->
+            <div id="results" class="mt-8">
+                <div id="message" class="text-center text-gray-500">
+                    Please upload an Excel file to get started.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Download Report Button moved to the bottom -->
+        <div class="w-full max-w-6xl mt-6 p-4 flex justify-center">
+            <button id="download-report-btn" class="w-full sm:w-1/3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-150 ease-in-out shadow-md" disabled>
+                Download Report
+            </button>
+        </div>
     </div>
 
     <script>
+        // Login Page Elements
+        const loginContainer = document.getElementById('login-container');
+        const loginForm = document.getElementById('login-form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginMessage = document.getElementById('login-message');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // Main App Elements
+        const mainAppContainer = document.getElementById('main-app-container');
         const fileInput = document.getElementById('excel-file');
         const resultsDiv = document.getElementById('results');
         const controlsContainer = document.getElementById('controls-container');
         const brandFilter = document.getElementById('brand-filter');
+        const searchInput = document.getElementById('search-input');
         const downloadBtn = document.getElementById('download-report-btn');
         const overallSummaryContainer = document.getElementById('overall-summary-container');
         const overallDiffCbb = document.getElementById('overall-diff-cbb');
@@ -119,11 +189,62 @@
         const columnSelectorContainer = document.getElementById('column-selector-container');
         const columnSelector = document.getElementById('column-selector');
 
+        // Hardcoded credentials for demonstration
+        const credentials = {
+            'user': 'password123'
+        };
+
+        // State variables
         let fullDataset = [];
         let displayedDataset = [];
         let allHeaders = [];
         let visibleHeaders = [];
+        let currentSortColumn = null;
+        let sortDirection = 'asc'; // 'asc' or 'desc'
 
+        // --- AUTHENTICATION FUNCTIONS ---
+        const showMainApp = () => {
+            loginContainer.classList.add('hidden');
+            mainAppContainer.classList.remove('hidden');
+        };
+
+        const showLoginPage = () => {
+            loginContainer.classList.remove('hidden');
+            mainAppContainer.classList.add('hidden');
+            loginForm.reset();
+            loginMessage.classList.add('hidden');
+            // Reset main app state
+            resultsDiv.innerHTML = '<div id="message" class="text-center text-gray-500">Please upload an Excel file to get started.</div>';
+            controlsContainer.classList.add('hidden');
+            overallSummaryContainer.classList.add('hidden');
+            columnSelectorContainer.classList.add('hidden');
+            downloadBtn.disabled = true;
+            fileInput.value = '';
+            fullDataset = [];
+            displayedDataset = [];
+            allHeaders = [];
+            visibleHeaders = [];
+            currentSortColumn = null;
+            sortDirection = 'asc';
+        };
+
+        const handleLogin = (e) => {
+            e.preventDefault();
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+
+            if (credentials[username] === password) {
+                showMainApp();
+            } else {
+                loginMessage.classList.remove('hidden');
+            }
+        };
+
+        const handleLogout = () => {
+            showLoginPage();
+        };
+
+        // --- EXISTING STOCK CALCULATOR FUNCTIONS (MODIFIED FOR NEW STRUCTURE) ---
         // Function to update the overall summary display
         const updateOverallSummary = () => {
             let totalActualPkt = 0;
@@ -270,19 +391,8 @@
 
             // Add event listeners to the new checkboxes
             document.querySelectorAll('#column-selector input[type="checkbox"]').forEach(checkbox => {
-                checkbox.addEventListener('change', (e) => {
-                    const header = e.target.value;
-                    if (e.target.checked) {
-                        if (!visibleHeaders.includes(header)) {
-                             visibleHeaders.push(header);
-                        }
-                    } else {
-                        const index = visibleHeaders.indexOf(header);
-                        if (index > -1) {
-                            visibleHeaders.splice(index, 1);
-                        }
-                    }
-                    renderTable(displayedDataset);
+                checkbox.addEventListener('change', () => {
+                    filterAndSort();
                 });
             });
         };
@@ -304,7 +414,16 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                ${visibleHeaders.map(key => `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${key}</th>`).join('')}
+                                ${visibleHeaders.map(key => {
+                                    const isCurrentSort = currentSortColumn === key;
+                                    const sortIcon = isCurrentSort ? (sortDirection === 'asc' ? '&#x25B2;' : '&#x25BC;') : '';
+                                    return `
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header" data-column-key="${key}">
+                                            ${key}
+                                            <span class="sort-icon">${sortIcon}</span>
+                                        </th>
+                                    `;
+                                }).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -313,9 +432,6 @@
                                 const actualCbbValue = row["Actual CBB"] || 0;
                                 const actualPktValue = row["Actual PKT"] || 0;
                                 
-                                const initialStockCbb = row["Stock in CBB"] || 0;
-                                const initialStockPkt = row["Stock in PKT"] || 0;
-
                                 // Dynamically generate cells based on visible headers
                                 const cells = visibleHeaders.map(header => {
                                     if (header === "Actual CBB") {
@@ -345,8 +461,16 @@
             document.querySelectorAll('.table-input').forEach(input => {
                 input.addEventListener('input', (e) => {
                     const rowIndex = e.target.dataset.rowIndex;
-                    const rowData = displayedDataset[rowIndex];
+                    const rowData = dataToDisplay[rowIndex];
                     calculateAndDisplayRow(rowData, rowIndex);
+                });
+            });
+
+            // Add event listeners to sortable headers
+            document.querySelectorAll('.sortable-header').forEach(header => {
+                header.addEventListener('click', (e) => {
+                    const columnKey = e.currentTarget.dataset.columnKey;
+                    handleSort(columnKey);
                 });
             });
 
@@ -354,6 +478,61 @@
             dataToDisplay.forEach((row, index) => {
                 calculateAndDisplayRow(row, index);
             });
+        };
+
+        // The main function to filter and sort data before rendering
+        const filterAndSort = () => {
+            const selectedBrand = brandFilter.value;
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            let filteredData = fullDataset;
+
+            if (selectedBrand !== 'all') {
+                filteredData = filteredData.filter(row => row["Brand Desc"] === selectedBrand);
+            }
+
+            if (searchTerm) {
+                filteredData = filteredData.filter(row =>
+                    (row["Parent SKU"] && row["Parent SKU"].toString().toLowerCase().includes(searchTerm)) ||
+                    (row["Parent SKU Desc"] && row["Parent SKU Desc"].toString().toLowerCase().includes(searchTerm))
+                );
+            }
+
+            // Sort the data if a column is selected
+            if (currentSortColumn) {
+                const isNumeric = ["MRP", "Stock in CBB", "Stock in PKT", "Conversion", "Actual CBB", "Actual PKT", "Difference in CBB", "Difference in PKT"].includes(currentSortColumn);
+                filteredData.sort((a, b) => {
+                    let aValue = a[currentSortColumn] || (isNumeric ? 0 : '');
+                    let bValue = b[currentSortColumn] || (isNumeric ? 0 : '');
+
+                    if (isNumeric) {
+                        aValue = parseFloat(aValue);
+                        bValue = parseFloat(bValue);
+                    } else {
+                        aValue = aValue.toString().toLowerCase();
+                        bValue = bValue.toString().toLowerCase();
+                    }
+
+                    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+                    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+            
+            // Re-calculate the overall summary on the newly filtered and sorted data
+            displayedDataset = filteredData;
+            renderTable(displayedDataset);
+        };
+
+        // Function to handle sorting when a header is clicked
+        const handleSort = (columnKey) => {
+            if (currentSortColumn === columnKey) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = columnKey;
+                sortDirection = 'asc';
+            }
+            filterAndSort();
         };
 
         // Function to handle the file upload and processing
@@ -430,6 +609,11 @@
                         "Status"
                     ];
 
+                    // Reset sorting and filtering
+                    currentSortColumn = null;
+                    sortDirection = 'asc';
+                    searchInput.value = '';
+
                     // Set the initially displayed data and render the table
                     displayedDataset = fullDataset;
                     controlsContainer.classList.remove('hidden');
@@ -440,7 +624,7 @@
                     toggleViewBtn.textContent = "Hide Detailed View"; // Reset button text
 
                     renderColumnSelectors();
-                    renderTable(displayedDataset);
+                    filterAndSort(); // Initial render with no filtering or sorting
                     updateOverallSummary(); // Initial summary calculation
                 } catch (error) {
                     console.error("Error processing file:", error);
@@ -477,16 +661,10 @@
         };
 
         // Event listener for the brand filter dropdown
-        brandFilter.addEventListener('change', () => {
-            const selectedBrand = brandFilter.value;
-            if (selectedBrand === 'all') {
-                displayedDataset = fullDataset;
-            } else {
-                displayedDataset = fullDataset.filter(row => row["Brand Desc"] === selectedBrand);
-            }
-            // Re-render the table with the filtered data, using the stored values
-            renderTable(displayedDataset);
-        });
+        brandFilter.addEventListener('change', filterAndSort);
+
+        // Event listener for the search input
+        searchInput.addEventListener('input', filterAndSort);
 
         // Event listener for the toggle view button
         toggleViewBtn.addEventListener('click', () => {
@@ -500,7 +678,11 @@
                 toggleViewBtn.textContent = "Show Detailed View";
             }
         });
-
+        
+        // --- EVENT LISTENERS ---
+        document.addEventListener('DOMContentLoaded', showLoginPage);
+        loginForm.addEventListener('submit', handleLogin);
+        logoutBtn.addEventListener('click', handleLogout);
         fileInput.addEventListener('change', handleFile);
         downloadBtn.addEventListener('click', downloadReport);
     </script>
