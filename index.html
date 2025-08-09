@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Per-Material Stock Calculator</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for input fields to fit table cells and be more readable */
+        .table-input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.25rem;
+        }
+        /* Ensure table columns are flexible and prevent unnecessary wrapping */
+        .min-w-table-cell {
+            min-width: 120px;
+        }
+    </style>
+    <!-- XLSX library to read Excel files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-start min-h-screen p-4">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-6xl border border-gray-200">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Stock Check Calculator</h1>
+        
+        <p class="text-gray-600 text-center mb-6">
+            Upload an Excel file to see the stock difference and status for each material individually.
+        </p>
+
+        <!-- File input section -->
+        <div class="w-full mb-6">
+            <label for="excel-file" class="block text-gray-700 font-medium mb-2">Choose your Excel file:</label>
+            <input type="file" id="excel-file" accept=".xlsx" class="w-full text-gray-700 bg-white border border-gray-300 rounded-lg cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition duration-150 ease-in-out">
+        </div>
+
+        <!-- Action buttons and filters -->
+        <div id="controls-container" class="mb-6 hidden flex flex-col sm:flex-row gap-4">
+            <!-- Dropdown for filtering -->
+            <div class="flex-1">
+                <label for="brand-filter" class="block text-gray-700 font-medium mb-2">Filter by Brand:</label>
+                <select id="brand-filter" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="all">All Brands</option>
+                </select>
+            </div>
+            
+            <!-- Toggle View Button -->
+            <div class="flex-1 self-end">
+                <button id="toggle-view-btn" class="w-full sm:w-auto mt-7 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md">
+                    Hide Detailed View
+                </button>
+            </div>
+        </div>
+
+        <!-- Overall Stock Summary section -->
+        <div id="overall-summary-container" class="mt-8 hidden bg-gray-50 p-6 rounded-xl border border-gray-200">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Overall Stock Summary</h2>
+            <div class="flex flex-col sm:flex-row justify-around text-center space-y-4 sm:space-y-0">
+                <div>
+                    <p class="text-gray-600 font-medium">Total Difference in CBB</p>
+                    <p id="overall-diff-cbb" class="text-2xl font-bold text-gray-800">0.00</p>
+                </div>
+                <div>
+                    <p class="text-gray-600 font-medium">Total Difference in PKT</p>
+                    <p id="overall-diff-pkt" class="text-2xl font-bold text-gray-800">0.00</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Display area for results and messages -->
+        <div id="results" class="mt-8">
+            <div id="message" class="text-center text-gray-500">
+                Please upload an Excel file to get started.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Download Report Button moved to the bottom -->
+    <div class="w-full max-w-6xl mt-6 p-4 flex justify-center">
+        <button id="download-report-btn" class="w-full sm:w-1/3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-150 ease-in-out shadow-md" disabled>
+            Download Report
+        </button>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('excel-file');
+        const resultsDiv = document.getElementById('results');
+        const controlsContainer = document.getElementById('controls-container');
+        const brandFilter = document.getElementById('brand-filter');
+        const downloadBtn = document.getElementById('download-report-btn');
+        const overallSummaryContainer = document.getElementById('overall-summary-container');
+        const overallDiffCbb = document.getElementById('overall-diff-cbb');
+        const overallDiffPkt = document.getElementById('overall-diff-pkt');
+        const toggleViewBtn = document.getElementById('toggle-view-btn');
+
+        let fullDataset = [];
+        let displayedDataset = [];
+
+        // Function to update the overall summary display
+        const updateOverallSummary = () => {
+            let totalActualPkt = 0;
+            let totalFilePkt = 0;
+            const conversionFactors = {};
+
+            // First, get the conversion factor for each Parent SKU
+            fullDataset.forEach(row => {
+                const parentSku = row["Parent SKU"];
+                const conversionFactor = parseFloat(row["Conversion"]) || 1;
+                conversionFactors[parentSku] = conversionFactor;
+            });
+            
+            fullDataset.forEach(row => {
+                const conversionFactor = conversionFactors[row["Parent SKU"]];
+                const fileStockCbb = parseFloat(row["Stock in CBB"]) || 0;
+                const fileStockPkt = parseFloat(row["Stock in PKT"]) || 0;
+                const actualCbb = parseFloat(row["Actual CBB"]) || 0;
+                const actualPkt = parseFloat(row["Actual PKT"]) || 0;
+
+                totalFilePkt += (fileStockCbb * conversionFactor) + fileStockPkt;
+                totalActualPkt += (actualCbb * conversionFactor) + actualPkt;
+            });
+
+            const overallDiffInPkt = totalActualPkt - totalFilePkt;
+            // Let's sum the individual differences for CBB for better accuracy.
+            let totalActualCbb = fullDataset.reduce((sum, row) => sum + (parseFloat(row["Actual CBB"]) || 0), 0);
+            let totalFileCbb = fullDataset.reduce((sum, row) => sum + (parseFloat(row["Stock in CBB"]) || 0), 0);
+            const overallDiffInCbb = totalActualCbb - totalFileCbb;
+
+            overallDiffCbb.textContent = overallDiffInCbb.toFixed(2);
+            overallDiffPkt.textContent = overallDiffInPkt.toFixed(2);
+
+            // Dynamically change color based on the difference
+            if (overallDiffInCbb > 0) {
+                overallDiffCbb.classList.remove('text-red-600', 'text-gray-800');
+                overallDiffCbb.classList.add('text-green-600');
+            } else if (overallDiffInCbb < 0) {
+                overallDiffCbb.classList.remove('text-green-600', 'text-gray-800');
+                overallDiffCbb.classList.add('text-red-600');
+            } else {
+                overallDiffCbb.classList.remove('text-green-600', 'text-red-600');
+                overallDiffCbb.classList.add('text-gray-800');
+            }
+
+            if (overallDiffInPkt > 0) {
+                overallDiffPkt.classList.remove('text-red-600', 'text-gray-800');
+                overallDiffPkt.classList.add('text-green-600');
+            } else if (overallDiffInPkt < 0) {
+                overallDiffPkt.classList.remove('text-green-600', 'text-gray-800');
+                overallDiffPkt.classList.add('text-red-600');
+            } else {
+                overallDiffPkt.classList.remove('text-green-600', 'text-red-600');
+                overallDiffPkt.classList.add('text-gray-800');
+            }
+        };
+
+        // Function to perform calculations for a single row and update the UI and dataset
+        const calculateAndDisplayRow = (row, rowIndex) => {
+            const rowElement = document.getElementById(`row-${rowIndex}`);
+            if (!rowElement) return;
+
+            const actualCbbInput = rowElement.querySelector('.actual-cbb-input');
+            const actualPktInput = rowElement.querySelector('.actual-pkt-input');
+
+            const actualCbb = parseFloat(actualCbbInput.value) || 0;
+            const actualPkt = parseFloat(actualPktInput.value) || 0;
+            const conversionFactor = parseFloat(row["Conversion"]) || 1;
+
+            // Use the original stock values from the file as the target
+            const fileStockCbb = parseFloat(row["Stock in CBB"]) || 0;
+            const fileStockPkt = parseFloat(row["Stock in PKT"]) || 0;
+
+            const fileStockPktTotal = fileStockCbb * conversionFactor + fileStockPkt;
+            const actualPktTotal = actualCbb * conversionFactor + actualPkt;
+
+            const diffPkt = actualPktTotal - fileStockPktTotal;
+            const diffCbb = diffPkt / conversionFactor;
+
+            let status = "Equal";
+            let statusClass = "text-gray-800";
+            if (diffPkt > 0) {
+                status = "Excess";
+                statusClass = "text-green-600 font-bold";
+            } else if (diffPkt < 0) {
+                status = "Shortage";
+                statusClass = "text-red-600 font-bold";
+            }
+
+            // Update the display cells for this row
+            rowElement.querySelector('.diff-cbb-cell').textContent = diffCbb.toFixed(2);
+            rowElement.querySelector('.diff-pkt-cell').textContent = diffPkt.toFixed(2);
+            const statusCell = rowElement.querySelector('.status-cell');
+            statusCell.textContent = status;
+            statusCell.className = `px-6 py-4 text-sm ${statusClass} status-cell`;
+            
+            // Update the dataset with the new values. Now using "Parent SKU" for lookup.
+            const fullDatasetRow = fullDataset.find(d => d["Parent SKU"] === row["Parent SKU"]);
+            if (fullDatasetRow) {
+                fullDatasetRow["Actual CBB"] = actualCbb;
+                fullDatasetRow["Actual PKT"] = actualPkt;
+                fullDatasetRow["Difference in CBB"] = diffCbb;
+                fullDatasetRow["Difference in PKT"] = diffPkt;
+                fullDatasetRow["Status"] = status;
+            }
+
+            // Update the overall summary
+            updateOverallSummary();
+        };
+
+        // Function to render the table with per-row inputs
+        const renderTable = (dataToDisplay) => {
+            if (dataToDisplay.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-xl relative" role="alert">
+                        <strong class="font-bold">Info!</strong>
+                        <span class="block sm:inline">No data to display. Please check your file or selected filter.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            // Updated headers to use Parent SKU
+            const headers = [
+                "Parent SKU", "Parent SKU Desc", "MRP", "Conversion", "Stock in CBB", "Stock in PKT", "Actual CBB", "Actual PKT", "Difference in CBB", "Difference in PKT", "Status"
+            ];
+
+            let tableHtml = `
+                <div class="overflow-x-auto rounded-xl shadow-md border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                ${headers.map(key => `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${key}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${dataToDisplay.map((row, index) => {
+                                // Use the stored "Actual" values if they exist, otherwise default to 0
+                                const actualCbbValue = row["Actual CBB"] || 0;
+                                const actualPktValue = row["Actual PKT"] || 0;
+                                
+                                const initialStockCbb = row["Stock in CBB"] || 0;
+                                const initialStockPkt = row["Stock in PKT"] || 0;
+                                
+                                return `
+                                    <tr id="row-${index}">
+                                        <td class="px-6 py-4 text-sm text-gray-800">${row["Parent SKU"]}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-800">${row["Parent SKU Desc"]}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-800">${row["MRP"]}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-800">${row["Conversion"]}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-800">${initialStockCbb}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-800">${initialStockPkt}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-800">
+                                            <input type="number" class="table-input actual-cbb-input" value="${actualCbbValue}" data-row-index="${index}">
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-800">
+                                            <input type="number" class="table-input actual-pkt-input" value="${actualPktValue}" data-row-index="${index}">
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-800 diff-cbb-cell">0.00</td>
+                                        <td class="px-6 py-4 text-sm text-gray-800 diff-pkt-cell">0.00</td>
+                                        <td class="px-6 py-4 text-sm text-gray-800 status-cell">Equal</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            resultsDiv.innerHTML = tableHtml;
+
+            // Add event listeners to the new input fields
+            document.querySelectorAll('.table-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const rowIndex = e.target.dataset.rowIndex;
+                    const rowData = displayedDataset[rowIndex];
+                    calculateAndDisplayRow(rowData, rowIndex);
+                });
+            });
+
+            // Initial calculation for all rows after rendering
+            dataToDisplay.forEach((row, index) => {
+                calculateAndDisplayRow(row, index);
+            });
+        };
+
+        // Function to handle the file upload and processing
+        const handleFile = (e) => {
+            const file = e.target.files[0];
+            if (!file) {
+                resultsDiv.innerHTML = '<div id="message" class="text-center text-gray-500">Please upload an Excel file to get started.</div>';
+                controlsContainer.classList.add('hidden');
+                overallSummaryContainer.classList.add('hidden');
+                downloadBtn.disabled = true;
+                return;
+            }
+
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    fullDataset = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (fullDataset.length === 0) {
+                        resultsDiv.innerHTML = `
+                            <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-xl relative" role="alert">
+                                <strong class="font-bold">Info!</strong>
+                                <span class="block sm:inline">The uploaded file is empty. Please check the content.</span>
+                            </div>
+                        `;
+                        controlsContainer.classList.add('hidden');
+                        overallSummaryContainer.classList.add('hidden');
+                        downloadBtn.disabled = true;
+                        return;
+                    }
+
+                    // Add new columns to the dataset for the report
+                    fullDataset.forEach(row => {
+                        // Ensure these columns exist for new files
+                        if (!row.hasOwnProperty("Actual CBB")) row["Actual CBB"] = 0;
+                        if (!row.hasOwnProperty("Actual PKT")) row["Actual PKT"] = 0;
+                        if (!row.hasOwnProperty("Difference in CBB")) row["Difference in CBB"] = 0;
+                        if (!row.hasOwnProperty("Difference in PKT")) row["Difference in PKT"] = 0;
+                        if (!row.hasOwnProperty("Status")) row["Status"] = "Equal";
+                    });
+
+                    // Get unique brand names to populate the dropdown
+                    const brands = [...new Set(fullDataset.map(row => row["Brand Desc"]))].filter(Boolean);
+                    brandFilter.innerHTML = '<option value="all">All Brands</option>';
+                    brands.forEach(brand => {
+                        const option = document.createElement('option');
+                        option.value = brand;
+                        option.textContent = brand;
+                        brandFilter.appendChild(option);
+                    });
+
+                    // Set the initially displayed data and render the table
+                    displayedDataset = fullDataset;
+                    controlsContainer.classList.remove('hidden');
+                    overallSummaryContainer.classList.remove('hidden');
+                    downloadBtn.disabled = false;
+                    resultsDiv.classList.remove('hidden'); // Ensure results are visible on upload
+                    toggleViewBtn.textContent = "Hide Detailed View"; // Reset button text
+                    renderTable(displayedDataset);
+                    updateOverallSummary(); // Initial summary calculation
+                } catch (error) {
+                    console.error("Error processing file:", error);
+                    resultsDiv.innerHTML = `
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative" role="alert">
+                            <strong class="font-bold">Error!</strong>
+                            <span class="block sm:inline">An error occurred while processing your file. Please ensure it is a valid Excel file with the correct column headers.</span>
+                        </div>
+                    `;
+                    controlsContainer.classList.add('hidden');
+                    overallSummaryContainer.classList.add('hidden');
+                    downloadBtn.disabled = true;
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        };
+
+        // Function to download the report
+        const downloadReport = () => {
+            if (fullDataset.length === 0) {
+                // Use a custom modal or div instead of alert
+                // For this example, we'll just log to console.
+                console.error("Please upload a file first.");
+                return;
+            }
+
+            const ws = XLSX.utils.json_to_sheet(fullDataset);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Stock Report");
+
+            XLSX.writeFile(wb, "Stock_Report.xlsx");
+        };
+
+        // Event listener for the brand filter dropdown
+        brandFilter.addEventListener('change', () => {
+            const selectedBrand = brandFilter.value;
+            if (selectedBrand === 'all') {
+                displayedDataset = fullDataset;
+            } else {
+                displayedDataset = fullDataset.filter(row => row["Brand Desc"] === selectedBrand);
+            }
+            // Re-render the table with the filtered data, using the stored values
+            renderTable(displayedDataset);
+        });
+
+        // Event listener for the toggle view button
+        toggleViewBtn.addEventListener('click', () => {
+            if (resultsDiv.classList.contains('hidden')) {
+                resultsDiv.classList.remove('hidden');
+                downloadBtn.classList.remove('hidden');
+                toggleViewBtn.textContent = "Hide Detailed View";
+            } else {
+                resultsDiv.classList.add('hidden');
+                downloadBtn.classList.add('hidden');
+                toggleViewBtn.textContent = "Show Detailed View";
+            }
+        });
+
+        fileInput.addEventListener('change', handleFile);
+        downloadBtn.addEventListener('click', downloadReport);
+    </script>
+</body>
+</html>
