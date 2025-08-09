@@ -24,13 +24,21 @@
         .min-w-table-cell {
             min-width: 120px;
         }
+        /* Custom scrollbar styling for better aesthetics */
+        .overflow-x-auto::-webkit-scrollbar {
+            height: 8px;
+        }
+        .overflow-x-auto::-webkit-scrollbar-thumb {
+            background-color: #cbd5e0;
+            border-radius: 10px;
+        }
     </style>
     <!-- XLSX library to read Excel files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-start min-h-screen p-4">
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-6xl border border-gray-200">
-        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Stock Check Calculator</h1>
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Stock Check Ca</h1>
         
         <p class="text-gray-600 text-center mb-6">
             Upload an Excel file to see the stock difference and status for each material individually.
@@ -57,6 +65,14 @@
                 <button id="toggle-view-btn" class="w-full sm:w-auto mt-7 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md">
                     Hide Detailed View
                 </button>
+            </div>
+        </div>
+        
+        <!-- New Column Selector section -->
+        <div id="column-selector-container" class="mb-6 hidden">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Select Columns to Display:</h3>
+            <div id="column-selector" class="flex flex-wrap gap-2">
+                <!-- Checkboxes will be dynamically generated here -->
             </div>
         </div>
 
@@ -100,9 +116,13 @@
         const overallDiffCbb = document.getElementById('overall-diff-cbb');
         const overallDiffPkt = document.getElementById('overall-diff-pkt');
         const toggleViewBtn = document.getElementById('toggle-view-btn');
+        const columnSelectorContainer = document.getElementById('column-selector-container');
+        const columnSelector = document.getElementById('column-selector');
 
         let fullDataset = [];
         let displayedDataset = [];
+        let allHeaders = [];
+        let visibleHeaders = [];
 
         // Function to update the overall summary display
         const updateOverallSummary = () => {
@@ -194,11 +214,17 @@
             }
 
             // Update the display cells for this row
-            rowElement.querySelector('.diff-cbb-cell').textContent = diffCbb.toFixed(2);
-            rowElement.querySelector('.diff-pkt-cell').textContent = diffPkt.toFixed(2);
-            const statusCell = rowElement.querySelector('.status-cell');
-            statusCell.textContent = status;
-            statusCell.className = `px-6 py-4 text-sm ${statusClass} status-cell`;
+            if (rowElement.querySelector('.diff-cbb-cell')) {
+                 rowElement.querySelector('.diff-cbb-cell').textContent = diffCbb.toFixed(2);
+            }
+            if (rowElement.querySelector('.diff-pkt-cell')) {
+                rowElement.querySelector('.diff-pkt-cell').textContent = diffPkt.toFixed(2);
+            }
+            if (rowElement.querySelector('.status-cell')) {
+                const statusCell = rowElement.querySelector('.status-cell');
+                statusCell.textContent = status;
+                statusCell.className = `px-6 py-4 text-sm ${statusClass} status-cell`;
+            }
             
             // Update the dataset with the new values. Now using "Parent SKU" for lookup.
             const fullDatasetRow = fullDataset.find(d => d["Parent SKU"] === row["Parent SKU"]);
@@ -214,6 +240,53 @@
             updateOverallSummary();
         };
 
+        // Function to render the column selectors
+        const renderColumnSelectors = () => {
+            columnSelector.innerHTML = ''; // Clear previous selectors
+            allHeaders.forEach(header => {
+                const isChecked = visibleHeaders.includes(header);
+                const isMandatory = ["Parent SKU", "Parent SKU Desc"].includes(header);
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `col-${header.replace(/\s/g, '-')}`;
+                checkbox.value = header;
+                checkbox.checked = isChecked;
+                checkbox.disabled = isMandatory;
+                checkbox.classList.add('form-checkbox', 'h-4', 'w-4', 'text-indigo-600', 'transition', 'duration-150', 'ease-in-out', 'rounded');
+
+                const label = document.createElement('label');
+                label.htmlFor = `col-${header.replace(/\s/g, '-')}`;
+                label.textContent = header;
+                label.classList.add('ml-2', 'text-gray-700', 'font-medium', 'whitespace-nowrap');
+
+                const container = document.createElement('div');
+                container.classList.add('flex', 'items-center', 'mr-4');
+                container.appendChild(checkbox);
+                container.appendChild(label);
+
+                columnSelector.appendChild(container);
+            });
+
+            // Add event listeners to the new checkboxes
+            document.querySelectorAll('#column-selector input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const header = e.target.value;
+                    if (e.target.checked) {
+                        if (!visibleHeaders.includes(header)) {
+                             visibleHeaders.push(header);
+                        }
+                    } else {
+                        const index = visibleHeaders.indexOf(header);
+                        if (index > -1) {
+                            visibleHeaders.splice(index, 1);
+                        }
+                    }
+                    renderTable(displayedDataset);
+                });
+            });
+        };
+
         // Function to render the table with per-row inputs
         const renderTable = (dataToDisplay) => {
             if (dataToDisplay.length === 0) {
@@ -226,17 +299,12 @@
                 return;
             }
 
-            // Updated headers to use Parent SKU
-            const headers = [
-                "Parent SKU", "Parent SKU Desc", "MRP", "Conversion", "Stock in CBB", "Stock in PKT", "Actual CBB", "Actual PKT", "Difference in CBB", "Difference in PKT", "Status"
-            ];
-
             let tableHtml = `
                 <div class="overflow-x-auto rounded-xl shadow-md border border-gray-200">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                ${headers.map(key => `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${key}</th>`).join('')}
+                                ${visibleHeaders.map(key => `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${key}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -247,26 +315,25 @@
                                 
                                 const initialStockCbb = row["Stock in CBB"] || 0;
                                 const initialStockPkt = row["Stock in PKT"] || 0;
+
+                                // Dynamically generate cells based on visible headers
+                                const cells = visibleHeaders.map(header => {
+                                    if (header === "Actual CBB") {
+                                        return `<td class="px-6 py-4 text-sm text-gray-800"><input type="number" class="table-input actual-cbb-input" value="${actualCbbValue}" data-row-index="${index}"></td>`;
+                                    } else if (header === "Actual PKT") {
+                                        return `<td class="px-6 py-4 text-sm text-gray-800"><input type="number" class="table-input actual-pkt-input" value="${actualPktValue}" data-row-index="${index}"></td>`;
+                                    } else if (header === "Difference in CBB") {
+                                        return `<td class="px-6 py-4 text-sm text-gray-800 diff-cbb-cell">0.00</td>`;
+                                    } else if (header === "Difference in PKT") {
+                                        return `<td class="px-6 py-4 text-sm text-gray-800 diff-pkt-cell">0.00</td>`;
+                                    } else if (header === "Status") {
+                                        return `<td class="px-6 py-4 text-sm text-gray-800 status-cell">Equal</td>`;
+                                    } else {
+                                        return `<td class="px-6 py-4 text-sm text-gray-800">${row[header] || ''}</td>`;
+                                    }
+                                }).join('');
                                 
-                                return `
-                                    <tr id="row-${index}">
-                                        <td class="px-6 py-4 text-sm text-gray-800">${row["Parent SKU"]}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-800">${row["Parent SKU Desc"]}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-800">${row["MRP"]}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-800">${row["Conversion"]}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-800">${initialStockCbb}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-800">${initialStockPkt}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-800">
-                                            <input type="number" class="table-input actual-cbb-input" value="${actualCbbValue}" data-row-index="${index}">
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-gray-800">
-                                            <input type="number" class="table-input actual-pkt-input" value="${actualPktValue}" data-row-index="${index}">
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-gray-800 diff-cbb-cell">0.00</td>
-                                        <td class="px-6 py-4 text-sm text-gray-800 diff-pkt-cell">0.00</td>
-                                        <td class="px-6 py-4 text-sm text-gray-800 status-cell">Equal</td>
-                                    </tr>
-                                `;
+                                return `<tr id="row-${index}">${cells}</tr>`;
                             }).join('')}
                         </tbody>
                     </table>
@@ -296,6 +363,7 @@
                 resultsDiv.innerHTML = '<div id="message" class="text-center text-gray-500">Please upload an Excel file to get started.</div>';
                 controlsContainer.classList.add('hidden');
                 overallSummaryContainer.classList.add('hidden');
+                columnSelectorContainer.classList.add('hidden');
                 downloadBtn.disabled = true;
                 return;
             }
@@ -319,6 +387,7 @@
                         `;
                         controlsContainer.classList.add('hidden');
                         overallSummaryContainer.classList.add('hidden');
+                        columnSelectorContainer.classList.add('hidden');
                         downloadBtn.disabled = true;
                         return;
                     }
@@ -343,13 +412,34 @@
                         brandFilter.appendChild(option);
                     });
 
+                    // Set all headers from the file plus the new calculated ones
+                    allHeaders = Object.keys(fullDataset[0]);
+                    
+                    // Set default visible headers
+                    visibleHeaders = [
+                        "Parent SKU",
+                        "Parent SKU Desc",
+                        "MRP",
+                        "Conversion",
+                        "Stock in CBB",
+                        "Stock in PKT",
+                        "Actual CBB",
+                        "Actual PKT",
+                        "Difference in CBB",
+                        "Difference in PKT",
+                        "Status"
+                    ];
+
                     // Set the initially displayed data and render the table
                     displayedDataset = fullDataset;
                     controlsContainer.classList.remove('hidden');
                     overallSummaryContainer.classList.remove('hidden');
+                    columnSelectorContainer.classList.remove('hidden');
                     downloadBtn.disabled = false;
                     resultsDiv.classList.remove('hidden'); // Ensure results are visible on upload
                     toggleViewBtn.textContent = "Hide Detailed View"; // Reset button text
+
+                    renderColumnSelectors();
                     renderTable(displayedDataset);
                     updateOverallSummary(); // Initial summary calculation
                 } catch (error) {
@@ -362,6 +452,7 @@
                     `;
                     controlsContainer.classList.add('hidden');
                     overallSummaryContainer.classList.add('hidden');
+                    columnSelectorContainer.classList.add('hidden');
                     downloadBtn.disabled = true;
                 }
             };
