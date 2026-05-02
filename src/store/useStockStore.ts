@@ -10,6 +10,7 @@ interface StockState {
   searchTerm: string;
   sortConfig: SortConfig;
   isLoggedIn: boolean;
+  currentView: 'dashboard' | 'inventory' | 'analytics' | 'settings';
   
   setFullDataset: (data: StockRow[]) => void;
   updateRow: (index: number, actualCbb: number, actualPkt: number) => void;
@@ -17,6 +18,7 @@ interface StockState {
   setSearchTerm: (term: string) => void;
   setSortConfig: (config: SortConfig) => void;
   setVisibleHeaders: (headers: string[]) => void;
+  setCurrentView: (view: 'dashboard' | 'inventory' | 'analytics' | 'settings') => void;
   login: (user: string, pass: string) => boolean;
   logout: () => void;
   applyFilters: () => void;
@@ -52,6 +54,9 @@ export const useStockStore = create<StockState>((set, get) => ({
   searchTerm: '',
   sortConfig: { column: null, direction: 'asc' },
   isLoggedIn: false,
+  currentView: 'dashboard',
+
+  setCurrentView: (view) => set({ currentView: view }),
 
   setFullDataset: (data) => {
     const headers = data.length > 0 ? Object.keys(data[0]) : [];

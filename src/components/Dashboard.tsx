@@ -7,11 +7,39 @@ import StockTable from './StockTable';
 import SummaryCards from './SummaryCards';
 import Filters from './Filters';
 import Sidebar from './Sidebar';
+import InventoryView from './InventoryView';
+import AnalyticsView from './AnalyticsView';
+import SettingsView from './SettingsView';
 import { LogOut, Download, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 export default function Dashboard() {
-  const { logout, fullDataset, filteredDataset } = useStockStore();
+  const { fullDataset, currentView } = useStockStore();
+
+  const renderView = () => {
+    switch (currentView) {
+      case 'inventory':
+        return <InventoryView />;
+      case 'analytics':
+        return <AnalyticsView />;
+      case 'settings':
+        return <SettingsView />;
+      default:
+        return (
+          <div className="space-y-12">
+            <SummaryCards />
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-12 items-start">
+              <div className="xl:col-span-3">
+                <StockTable />
+              </div>
+              <div className="xl:col-span-1 sticky top-32">
+                <Filters />
+              </div>
+            </div>
+          </div>
+        );
+    }
+  };
 
   const handleDownload = () => {
     const ws = XLSX.utils.json_to_sheet(fullDataset);
@@ -40,17 +68,7 @@ export default function Dashboard() {
               <FileUpload />
             </motion.div>
           ) : (
-            <div className="space-y-12">
-              <SummaryCards />
-              <div className="grid grid-cols-1 xl:grid-cols-4 gap-12 items-start">
-                <div className="xl:col-span-3">
-                  <StockTable />
-                </div>
-                <div className="xl:col-span-1 sticky top-32">
-                  <Filters />
-                </div>
-              </div>
-            </div>
+            renderView()
           )}
         </main>
 

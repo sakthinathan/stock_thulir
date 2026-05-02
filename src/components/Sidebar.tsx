@@ -18,21 +18,14 @@ import { useState } from 'react';
 import * as XLSX from 'xlsx';
 
 export default function Sidebar() {
-  const { logout, fullDataset, brandFilter, setBrandFilter } = useStockStore();
+  const { logout, fullDataset, currentView, setCurrentView } = useStockStore();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const handleDownload = () => {
-    const ws = XLSX.utils.json_to_sheet(fullDataset);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Stock Report");
-    XLSX.writeFile(wb, `Stock_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
-  };
-
   const navItems = [
-    { icon: <LayoutDashboard size={20} />, label: "Dashboard", active: true },
-    { icon: <Database size={20} />, label: "Inventory", active: false },
-    { icon: <Activity size={20} />, label: "Analytics", active: false },
-    { icon: <Settings size={20} />, label: "Settings", active: false },
+    { id: 'dashboard', icon: <LayoutDashboard size={20} />, label: "Dashboard" },
+    { id: 'inventory', icon: <Database size={20} />, label: "Inventory" },
+    { id: 'analytics', icon: <Activity size={20} />, label: "Analytics" },
+    { id: 'settings', icon: <Settings size={20} />, label: "Settings" },
   ];
 
   return (
@@ -66,9 +59,10 @@ export default function Sidebar() {
         {navItems.map((item) => (
           <button
             key={item.label}
+            onClick={() => setCurrentView(item.id as any)}
             className={`
               w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group relative
-              ${item.active 
+              ${currentView === item.id 
                 ? 'bg-slate-900 text-white shadow-xl shadow-slate-200' 
                 : 'text-slate-400 hover:bg-slate-50 hover:text-indigo-600'}
             `}
@@ -88,7 +82,7 @@ export default function Sidebar() {
             </AnimatePresence>
             
             {/* Active Indicator */}
-            {item.active && !isCollapsed && (
+            {currentView === item.id && !isCollapsed && (
               <motion.div 
                 layoutId="active-pill"
                 className="absolute right-4 w-1.5 h-1.5 bg-indigo-400 rounded-full"
