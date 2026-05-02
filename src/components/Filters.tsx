@@ -27,34 +27,40 @@ export default function Filters() {
   };
 
   return (
-    <div className="space-y-6 sticky top-24">
+    <div className="space-y-8 sticky top-32">
       {/* Search */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-        <div className="flex items-center gap-2 mb-4 text-gray-900">
-          <Search size={18} />
-          <h3 className="font-bold">Quick Search</h3>
+      <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+        <div className="flex items-center gap-3 mb-6 text-slate-900">
+          <div className="bg-slate-100 p-2 rounded-xl text-slate-500">
+            <Search size={16} strokeWidth={3} />
+          </div>
+          <h3 className="text-xs font-black uppercase tracking-[0.2em]">Quick Search</h3>
         </div>
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search SKU or Desc..."
-          className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm font-medium text-gray-900 placeholder:text-gray-400"
-        />
+        <div className="relative group">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search SKU or Desc..."
+            className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent rounded-[1.25rem] focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm font-bold text-slate-900 placeholder:text-slate-300 shadow-inner"
+          />
+        </div>
       </div>
 
       {/* Brand Filter */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-        <div className="flex items-center gap-2 mb-4 text-gray-900">
-          <Filter size={18} />
-          <h3 className="font-bold">Brand Filter</h3>
+      <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+        <div className="flex items-center gap-3 mb-6 text-slate-900">
+          <div className="bg-slate-100 p-2 rounded-xl text-slate-500">
+            <Filter size={16} strokeWidth={3} />
+          </div>
+          <h3 className="text-xs font-black uppercase tracking-[0.2em]">Categories</h3>
         </div>
         <select
           value={brandFilter}
           onChange={(e) => setBrandFilter(e.target.value)}
-          className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm cursor-pointer font-medium text-gray-900"
+          className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent rounded-[1.25rem] focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm cursor-pointer font-bold text-slate-900 shadow-inner appearance-none"
         >
-          <option value="all">All Brands</option>
+          <option value="all">All Products</option>
           {brands.map(brand => (
             <option key={brand} value={brand}>{brand}</option>
           ))}
@@ -62,12 +68,14 @@ export default function Filters() {
       </div>
 
       {/* Column Selector */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-        <div className="flex items-center gap-2 mb-4 text-gray-900">
-          <LayoutGrid size={18} />
-          <h3 className="font-bold">Columns</h3>
+      <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+        <div className="flex items-center gap-3 mb-6 text-slate-900">
+          <div className="bg-slate-100 p-2 rounded-xl text-slate-500">
+            <LayoutGrid size={16} strokeWidth={3} />
+          </div>
+          <h3 className="text-xs font-black uppercase tracking-[0.2em]">Data View</h3>
         </div>
-        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin">
+        <div className="space-y-3 max-h-[350px] overflow-y-auto pr-3 scrollbar-thin">
           {headers.map(header => {
             const isVisible = visibleHeaders.includes(header);
             const isMandatory = ["Parent SKU", "Parent SKU Desc"].includes(header);
@@ -78,13 +86,15 @@ export default function Filters() {
                 disabled={isMandatory}
                 onClick={() => toggleHeader(header)}
                 className={`
-                  w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold transition-all
-                  ${isVisible ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-100 text-gray-500'}
-                  ${isMandatory ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02]'}
+                  w-full flex items-center justify-between px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                  ${isVisible 
+                    ? 'bg-slate-900 text-white shadow-lg shadow-slate-300' 
+                    : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}
+                  ${isMandatory ? 'opacity-40 cursor-not-allowed' : 'hover:scale-[1.03] active:scale-95'}
                 `}
               >
                 <span className="truncate mr-2">{header}</span>
-                {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
+                {isVisible ? <Eye size={12} strokeWidth={3} /> : <EyeOff size={12} strokeWidth={3} />}
               </button>
             );
           })}

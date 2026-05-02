@@ -28,31 +28,32 @@ export default function StockTable() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto max-h-[600px] scrollbar-thin scrollbar-thumb-gray-200">
+    <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
+      <div className="overflow-x-auto max-h-[700px] scrollbar-thin scrollbar-thumb-slate-200">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-gray-50/50 backdrop-blur-md sticky top-0 z-10 border-b border-gray-200">
+          <thead className="bg-slate-50/80 backdrop-blur-md sticky top-0 z-10 border-b border-slate-200">
             <tr>
               {visibleHeaders.map((header) => (
                 <th 
                   key={header}
                   onClick={() => handleSort(header)}
-                  className="px-6 py-4 text-xs font-bold text-gray-900 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                  className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] cursor-pointer hover:text-indigo-600 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     {header}
                     {sortConfig.column === header && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                      <span className="text-indigo-600">
+                        {sortConfig.direction === 'asc' ? <ChevronUp size={12} strokeWidth={3} /> : <ChevronDown size={12} strokeWidth={3} />}
+                      </span>
                     )}
                   </div>
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-100">
             <AnimatePresence mode='popLayout'>
               {filteredDataset.map((row) => {
-                // Find original index in fullDataset for updating
                 const originalIndex = fullDataset.findIndex(r => r["Parent SKU"] === row["Parent SKU"]);
                 
                 return (
@@ -62,38 +63,48 @@ export default function StockTable() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     key={row["Parent SKU"]}
-                    className="hover:bg-indigo-50/30 transition-colors group"
+                    className="hover:bg-slate-50/50 transition-colors group relative"
                   >
                     {visibleHeaders.map((header) => {
                       if (header === "Actual CBB") {
                         return (
                           <td key={header} className="px-6 py-4">
-                            <input
-                              type="number"
-                              defaultValue={row[header] || 0}
-                              onBlur={(e) => updateRow(originalIndex, parseFloat(e.target.value) || 0, row["Actual PKT"] || 0)}
-                              className="w-24 px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                            />
+                            <div className="relative w-28 group/input">
+                              <input
+                                type="number"
+                                defaultValue={row[header] || 0}
+                                onBlur={(e) => updateRow(originalIndex, parseFloat(e.target.value) || 0, row["Actual PKT"] || 0)}
+                                className="w-full px-4 py-2 bg-slate-50 border-2 border-transparent rounded-xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm font-black text-slate-900 shadow-inner"
+                              />
+                            </div>
                           </td>
                         );
                       }
                       if (header === "Actual PKT") {
                         return (
                           <td key={header} className="px-6 py-4">
-                            <input
-                              type="number"
-                              defaultValue={row[header] || 0}
-                              onBlur={(e) => updateRow(originalIndex, row["Actual CBB"] || 0, parseFloat(e.target.value) || 0)}
-                              className="w-24 px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                            />
+                            <div className="relative w-28 group/input">
+                              <input
+                                type="number"
+                                defaultValue={row[header] || 0}
+                                onBlur={(e) => updateRow(originalIndex, row["Actual CBB"] || 0, parseFloat(e.target.value) || 0)}
+                                className="w-full px-4 py-2 bg-slate-50 border-2 border-transparent rounded-xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm font-black text-slate-900 shadow-inner"
+                              />
+                            </div>
                           </td>
                         );
                       }
                       if (header === "Status") {
+                        const status = row[header] || 'Equal';
                         return (
                           <td key={header} className="px-6 py-4">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(row[header] || 'Equal')}`}>
-                              {row[header]}
+                            <span className={`
+                              inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider
+                              ${status === 'Excess' ? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-100' : 
+                                status === 'Shortage' ? 'bg-rose-100 text-rose-700 shadow-sm shadow-rose-100' : 
+                                'bg-slate-100 text-slate-500'}
+                            `}>
+                              {status}
                             </span>
                           </td>
                         );
@@ -101,7 +112,10 @@ export default function StockTable() {
                       
                       const isNumeric = typeof row[header] === 'number';
                       const isDifference = header.includes('Difference');
-                      const diffColor = isDifference ? (row[header] > 0 ? 'text-emerald-700' : row[header] < 0 ? 'text-red-700' : 'text-gray-500') : '';
+                      const isSKU = header === "Parent SKU";
+                      const isDesc = header === "Parent SKU Desc";
+                      
+                      const diffColor = isDifference ? (row[header] > 0 ? 'text-emerald-600' : row[header] < 0 ? 'text-rose-600' : 'text-slate-400') : '';
                       
                       let displayValue = row[header];
                       if (isNumeric && isNaN(displayValue)) {
@@ -109,8 +123,14 @@ export default function StockTable() {
                       }
 
                       return (
-                        <td key={header} className={`px-6 py-4 text-sm font-semibold ${isNumeric ? 'font-mono text-gray-900' : 'text-gray-800'} ${diffColor}`}>
-                          {displayValue}
+                        <td key={header} className={`
+                          px-6 py-4 text-sm
+                          ${isSKU ? 'font-black text-slate-900 tracking-tight' : ''}
+                          ${isDesc ? 'font-medium text-slate-600 max-w-[200px] truncate' : ''}
+                          ${isNumeric ? 'font-mono' : ''}
+                          ${diffColor}
+                        `}>
+                          {isNumeric && isDifference && displayValue !== 0 ? (displayValue > 0 ? `+${displayValue}` : displayValue) : displayValue}
                         </td>
                       );
                     })}
@@ -122,8 +142,11 @@ export default function StockTable() {
         </table>
       </div>
       {filteredDataset.length === 0 && (
-        <div className="py-20 text-center text-gray-400">
-          No records found matching your filters.
+        <div className="py-32 text-center">
+          <div className="bg-slate-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-4xl text-slate-200">🔍</span>
+          </div>
+          <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">No matching inventory records</p>
         </div>
       )}
     </div>

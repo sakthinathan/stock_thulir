@@ -78,11 +78,11 @@ export default function FileUpload() {
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         className={`
-          relative border-3 border-dashed rounded-3xl p-12 transition-all cursor-pointer
-          flex flex-col items-center justify-center gap-4
+          relative border-2 border-dashed rounded-[3rem] p-16 transition-all duration-500 cursor-pointer
+          flex flex-col items-center justify-center gap-6 group
           ${isDragging 
-            ? 'border-indigo-500 bg-indigo-50/50 scale-[1.02]' 
-            : 'border-gray-300 bg-white hover:border-indigo-400 hover:bg-gray-50'
+            ? 'border-indigo-500 bg-indigo-50/50 scale-[1.03] shadow-2xl shadow-indigo-100' 
+            : 'border-slate-200 bg-white hover:border-indigo-400 hover:shadow-2xl hover:shadow-slate-200/50'
           }
         `}
       >
@@ -90,59 +90,77 @@ export default function FileUpload() {
           type="file"
           accept=".xlsx,.pdf"
           onChange={handleChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
 
         <div className={`
-          w-20 h-20 rounded-2xl flex items-center justify-center transition-all
-          ${status === 'success' ? 'bg-emerald-100 text-emerald-600' : 
-            status === 'error' ? 'bg-red-100 text-red-600' : 'bg-indigo-100 text-indigo-600'}
+          w-24 h-24 rounded-[2rem] flex items-center justify-center transition-all duration-500 shadow-xl
+          ${status === 'success' ? 'bg-emerald-500 text-white shadow-emerald-200' : 
+            status === 'error' ? 'bg-rose-500 text-white shadow-rose-200' : 
+            'bg-indigo-600 text-white shadow-indigo-200 group-hover:rotate-6'}
         `}>
           {status === 'loading' ? (
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+              transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
             >
-              <Upload size={32} />
+              <Upload size={36} strokeWidth={2.5} />
             </motion.div>
           ) : status === 'success' ? (
-            <CheckCircle size={32} />
+            <CheckCircle size={36} strokeWidth={2.5} />
           ) : status === 'error' ? (
-            <AlertCircle size={32} />
+            <AlertCircle size={36} strokeWidth={2.5} />
           ) : (
-            <Upload size={32} />
+            <div className="relative">
+               <Upload size={36} strokeWidth={2.5} />
+               <motion.div 
+                 animate={{ y: [0, -5, 0] }}
+                 transition={{ repeat: Infinity, duration: 1.5 }}
+                 className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-300 rounded-full border-2 border-white"
+               />
+            </div>
           )}
         </div>
 
-        <div className="text-center">
-          <h3 className="text-xl font-semibold text-gray-800">
-            {status === 'success' ? 'Upload Complete!' : 'Upload Base Stock File'}
+        <div className="text-center space-y-2">
+          <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+            {status === 'success' ? 'Report Processed' : 'Upload Inventory Data'}
           </h3>
-          <p className="text-gray-500 mt-1">
-            Drag and drop Excel (.xlsx) or PDF (.pdf)
+          <p className="text-slate-400 font-medium text-sm">
+            {isDragging ? 'Drop it here' : 'Excel or PDF system reports'}
           </p>
         </div>
 
         {errorMsg && (
-          <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-rose-50 text-rose-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 border border-rose-100"
+          >
             <AlertCircle size={14} />
             {errorMsg}
-          </p>
+          </motion.div>
         )}
       </div>
 
-      <div className="mt-8 flex items-center justify-center gap-8 text-gray-400">
-        <div className="flex items-center gap-2">
-          <FileText size={18} />
-          <span className="text-sm">Auto-calculation</span>
+      <div className="mt-12 flex items-center justify-center gap-10">
+        <div className="flex flex-col items-center gap-2 group">
+          <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:text-indigo-600 transition-colors">
+            <FileText size={20} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Analysis</span>
         </div>
-        <div className="flex items-center gap-2">
-          <FileText size={18} />
-          <span className="text-sm">Real-time stats</span>
+        <div className="flex flex-col items-center gap-2 group">
+          <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:text-indigo-600 transition-colors">
+            <CheckCircle size={20} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Validate</span>
         </div>
-        <div className="flex items-center gap-2">
-          <FileText size={18} />
-          <span className="text-sm">Export report</span>
+        <div className="flex flex-col items-center gap-2 group">
+          <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:text-indigo-600 transition-colors">
+            <Upload size={20} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sync</span>
         </div>
       </div>
     </div>

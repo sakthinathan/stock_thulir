@@ -19,51 +19,58 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-100/50 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-indigo-100/30 rounded-full blur-[150px] pointer-events-none" />
+
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
-        <div className="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-white/20">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-emerald-600">
-              StockPro
-            </h1>
-            <p className="text-gray-500 mt-2">Inventory Management Elevated</p>
+        <div className="bg-white p-10 rounded-[3rem] shadow-2xl shadow-indigo-100/50 border border-slate-100 relative overflow-hidden group">
+          {/* Subtle line decoration */}
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-indigo-600" />
+          
+          <div className="text-center mb-10">
+            <div className="inline-flex bg-indigo-600 p-4 rounded-[1.5rem] text-white shadow-xl shadow-indigo-200 mb-6 group-hover:scale-110 transition-transform duration-500">
+              <Lock size={32} strokeWidth={2.5} />
+            </div>
+            <h2 className="text-4xl font-black text-slate-900 tracking-tighter">StockPro</h2>
+            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.25em] mt-2">Enterprise Audit Portal</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <User size={18} />
-                </span>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Secure Identifier</label>
+              <div className="relative group/input">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within/input:text-indigo-500 transition-colors">
+                  <User size={18} strokeWidth={2.5} />
+                </div>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => { setUsername(e.target.value); setError(false); }}
-                  className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Enter username"
+                  placeholder="Username"
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm font-bold text-slate-900 shadow-inner"
                   required
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <Lock size={18} />
-                </span>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Encrypted Access</label>
+              <div className="relative group/input">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within/input:text-indigo-500 transition-colors">
+                  <Lock size={18} strokeWidth={2.5} />
+                </div>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(false); }}
-                  className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Enter password"
+                  placeholder="Password"
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm font-bold text-slate-900 shadow-inner"
                   required
                 />
               </div>
@@ -71,23 +78,31 @@ export default function Login() {
 
             {error && (
               <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center gap-2 text-red-500 bg-red-50 p-3 rounded-lg text-sm"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-rose-50 text-rose-600 p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-rose-100"
               >
                 <AlertCircle size={16} />
-                <span>Invalid username or password</span>
+                Invalid credentials
               </motion.div>
             )}
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-indigo-200 active:scale-95"
+              className="w-full bg-slate-900 hover:bg-indigo-600 text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all shadow-xl shadow-slate-200 active:scale-95"
             >
-              Sign In
+              Sign In to Dashboard
             </button>
           </form>
+
+          <p className="mt-8 text-center text-slate-300 text-[10px] font-bold uppercase tracking-widest">
+            Restricted Access System
+          </p>
         </div>
+        
+        <p className="text-center mt-8 text-slate-400 text-[10px] font-medium tracking-[0.2em] uppercase opacity-50">
+          &copy; {new Date().getFullYear()} StockPro Systems &bull; All Rights Reserved
+        </p>
       </motion.div>
     </div>
   );
