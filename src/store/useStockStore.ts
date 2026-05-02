@@ -79,7 +79,12 @@ export const useStockStore = create<StockState>((set, get) => ({
       // Special handling for Good Day (GD, GOODDAY)
       if (descUpper.includes("GD") || descUpper.includes("GOODDAY") || descUpper.includes("GOOD DAY")) {
         brand = "Good Day";
-      } else {
+      } 
+      // Special handling for Marie Gold (MG, MARIEGOLD)
+      else if (descUpper.includes("MG") || descUpper.includes("MARIEGOLD") || descUpper.includes("MARIE GOLD")) {
+        brand = "Marie Gold";
+      }
+      else {
         const detectedBrand = BRAND_KEYWORDS.find(b => descUpper.includes(b.toUpperCase()));
         if (detectedBrand) {
           brand = detectedBrand;
