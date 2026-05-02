@@ -22,6 +22,15 @@ interface StockState {
   applyFilters: () => void;
 }
 
+const BRAND_KEYWORDS = [
+  "50-50", "Biscafe", "Bourbon", "Cake", "Croissant", "Dairy Whitener", "Ghee",
+  "Good Day", "Little Hearts", "Marie Gold", "Milk Bikis", "Nice Time",
+  "Non Milk Drinks", "Nutri Choice PH", "Nutri Choice RH", "Pure Magic",
+  "Rusk", "Snacking", "Tiger Creams", "Tiger Glucose", "Tiger Krunch",
+  "Tiger Others", "Time Pass", "Treat", "UHT Milk", "Wafers", "Winkin FM",
+  "Winkin Grow", "Winkin Lassi", "Winkin Milkshake", "Winkin Richshake"
+];
+
 export const useStockStore = create<StockState>((set, get) => ({
   fullDataset: [],
   filteredDataset: [],
@@ -60,7 +69,18 @@ export const useStockStore = create<StockState>((set, get) => ({
 
       const cbb = parseFloat(row["Stock in CBB"] as any) || 0;
       const pkt = parseFloat(row["Stock in PKT"] as any) || 0;
-      const brand = row["DMSDivisionDesc"] || row["Brand Desc"] || "General";
+      
+      // Detected Brand Logic
+      let brand = row["DMSDivisionDesc"] || row["Brand Desc"] || "General";
+      
+      // Auto-detect brand from description for better filtering
+      const descUpper = desc.toUpperCase();
+      const detectedBrand = BRAND_KEYWORDS.find(b => descUpper.includes(b.toUpperCase()));
+      if (detectedBrand) {
+        brand = detectedBrand;
+      } else if (brand === "Biscuits , Cake&Rusk" || brand === "General") {
+        brand = "Others";
+      }
       
       // Calculate MRP from Sellable Stock Val / Good Qty if MRP is missing
       const totalVal = parseFloat(row["Sellable Stock Val"] as any) || 0;
