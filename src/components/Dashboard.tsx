@@ -20,82 +20,103 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 selection:bg-indigo-100 flex flex-col relative overflow-hidden">
-      {/* Decorative Background Element */}
-      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-indigo-50/50 to-transparent pointer-events-none" />
-      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-100/30 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-mesh text-slate-900 selection:bg-indigo-100 flex flex-col relative overflow-hidden">
+      {/* Dynamic Background Elements */}
+      <div className="absolute inset-0 bg-grid opacity-[0.4] pointer-events-none" />
+      <motion.div 
+        animate={{ 
+          scale: [1, 1.2, 1],
+          x: [0, 50, 0],
+          y: [0, 30, 0],
+        }}
+        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-indigo-200/20 rounded-full blur-[150px] pointer-events-none" 
+      />
+      <motion.div 
+        animate={{ 
+          scale: [1.2, 1, 1.2],
+          x: [0, -50, 0],
+          y: [0, -30, 0],
+        }}
+        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+        className="absolute bottom-[-10%] right-[-10%] w-[800px] h-[800px] bg-rose-100/20 rounded-full blur-[150px] pointer-events-none" 
+      />
       
       {/* Header */}
-      <header className="glass sticky top-0 z-40 px-6 py-4 border-b border-white/20 shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3 group cursor-pointer">
-            <div className="bg-indigo-600 p-2.5 rounded-2xl text-white shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform duration-300">
-              <FileSpreadsheet size={22} strokeWidth={2.5} />
+      <header className="glass sticky top-0 z-50 px-8 py-5 border-b border-white/40 shadow-xl shadow-slate-200/20">
+        <div className="max-w-[1600px] mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4 group cursor-pointer">
+            <div className="relative">
+              <div className="absolute inset-0 bg-indigo-500 blur-xl opacity-40 group-hover:opacity-100 transition-opacity" />
+              <div className="relative bg-gradient-to-br from-indigo-600 to-indigo-700 p-3 rounded-[1.25rem] text-white shadow-2xl shadow-indigo-200 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                <FileSpreadsheet size={24} strokeWidth={2.5} />
+              </div>
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-tight text-slate-900 leading-tight">StockPro</h1>
-              <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest leading-tight">Intelligence Audit</p>
+              <h1 className="text-2xl font-black tracking-tighter text-slate-900 leading-none">StockPro</h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] leading-none">Intelligence Audit</p>
+              </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {fullDataset.length > 0 && (
               <button
                 onClick={handleDownload}
-                className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-xl shadow-slate-200 active:scale-95"
+                className="shimmer flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-2xl shadow-slate-300 active:scale-95"
               >
-                <Download size={16} strokeWidth={2.5} />
-                <span className="hidden sm:inline">Export Report</span>
+                <Download size={16} strokeWidth={3} />
+                <span>Export Analytics</span>
               </button>
             )}
             <button
               onClick={logout}
-              className="flex items-center gap-2 text-slate-500 hover:text-red-600 px-4 py-2.5 rounded-xl hover:bg-red-50 transition-all font-bold text-sm"
+              className="flex items-center gap-2 text-slate-400 hover:text-rose-600 px-5 py-3 rounded-2xl hover:bg-rose-50 transition-all font-black text-xs uppercase tracking-widest"
             >
-              <LogOut size={16} strokeWidth={2.5} />
-              <span className="hidden sm:inline">Sign Out</span>
+              <LogOut size={16} strokeWidth={3} />
+              <span>Exit Portal</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-10 space-y-8 relative z-10">
+      <main className="flex-1 max-w-[1600px] w-full mx-auto p-6 sm:p-10 lg:p-12 space-y-12 relative z-10">
         {fullDataset.length === 0 ? (
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", damping: 20 }}
+            initial={{ opacity: 0, scale: 0.9, y: 30 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: "spring", damping: 15, stiffness: 100 }}
             className="min-h-[70vh] flex flex-col items-center justify-center"
           >
             <FileUpload />
           </motion.div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-12">
             <SummaryCards />
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start"
-            >
-              <div className="lg:col-span-3">
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-12 items-start">
+              <div className="xl:col-span-3">
                 <StockTable />
               </div>
-              <div className="lg:col-span-1 sticky top-32">
+              <div className="xl:col-span-1 sticky top-32">
                 <Filters />
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
       </main>
 
-      <footer className="py-10 text-center text-slate-400 text-xs font-medium tracking-wide uppercase">
-        <div className="flex items-center justify-center gap-2 mb-2 opacity-50">
-          <div className="w-10 h-[1px] bg-slate-300" />
-          <span className="px-2 italic tracking-tighter lowercase">powered by antigravity</span>
-          <div className="w-10 h-[1px] bg-slate-300" />
+      <footer className="py-12 text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-white/40 backdrop-blur-sm -z-10" />
+        <div className="flex items-center justify-center gap-4 mb-4 opacity-30">
+          <div className="w-16 h-[2px] bg-gradient-to-r from-transparent to-slate-400" />
+          <div className="bg-slate-400 p-1 rounded-full" />
+          <div className="w-16 h-[2px] bg-gradient-to-l from-transparent to-slate-400" />
         </div>
-        &copy; {new Date().getFullYear()} StockPro Systems &bull; Version 2.0.4
+        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em]">
+          &copy; {new Date().getFullYear()} StockPro Cognitive Systems &bull; v2.5.0
+        </p>
       </footer>
     </div>
   );

@@ -28,21 +28,26 @@ export default function StockTable() {
   };
 
   return (
-    <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
-      <div className="overflow-x-auto max-h-[700px] scrollbar-thin scrollbar-thumb-slate-200">
+    <motion.div 
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+      className="glass rounded-[3rem] shadow-[0_32px_64px_-15px_rgba(0,0,0,0.1)] border border-white/60 overflow-hidden"
+    >
+      <div className="overflow-x-auto max-h-[750px] scrollbar-thin scrollbar-thumb-slate-200">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50/80 backdrop-blur-md sticky top-0 z-10 border-b border-slate-200">
+          <thead className="bg-slate-900 sticky top-0 z-20">
             <tr>
               {visibleHeaders.map((header) => (
                 <th 
                   key={header}
                   onClick={() => handleSort(header)}
-                  className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] cursor-pointer hover:text-indigo-600 transition-colors"
+                  className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] cursor-pointer hover:text-white transition-colors border-b border-slate-800"
                 >
                   <div className="flex items-center gap-2">
                     {header}
                     {sortConfig.column === header && (
-                      <span className="text-indigo-600">
+                      <span className="text-indigo-400">
                         {sortConfig.direction === 'asc' ? <ChevronUp size={12} strokeWidth={3} /> : <ChevronDown size={12} strokeWidth={3} />}
                       </span>
                     )}
@@ -51,30 +56,30 @@ export default function StockTable() {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100/50">
             <AnimatePresence mode='popLayout'>
-              {filteredDataset.map((row) => {
+              {filteredDataset.map((row, idx) => {
                 const originalIndex = fullDataset.findIndex(r => r["Parent SKU"] === row["Parent SKU"]);
                 
                 return (
                   <motion.tr 
                     layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.02 }}
                     key={row["Parent SKU"]}
-                    className="hover:bg-slate-50/50 transition-colors group relative"
+                    className="hover:bg-white/80 transition-all group relative cursor-default"
                   >
                     {visibleHeaders.map((header) => {
                       if (header === "Actual CBB") {
                         return (
-                          <td key={header} className="px-6 py-4">
-                            <div className="relative w-28 group/input">
+                          <td key={header} className="px-8 py-5">
+                            <div className="relative w-32 group/input">
                               <input
                                 type="number"
                                 defaultValue={row[header] || 0}
                                 onBlur={(e) => updateRow(originalIndex, parseFloat(e.target.value) || 0, row["Actual PKT"] || 0)}
-                                className="w-full px-4 py-2 bg-slate-50 border-2 border-transparent rounded-xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm font-black text-slate-900 shadow-inner"
+                                className="w-full px-5 py-3 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100 outline-none transition-all text-sm font-black text-slate-900 shadow-inner"
                               />
                             </div>
                           </td>
@@ -82,13 +87,13 @@ export default function StockTable() {
                       }
                       if (header === "Actual PKT") {
                         return (
-                          <td key={header} className="px-6 py-4">
-                            <div className="relative w-28 group/input">
+                          <td key={header} className="px-8 py-5">
+                            <div className="relative w-32 group/input">
                               <input
                                 type="number"
                                 defaultValue={row[header] || 0}
                                 onBlur={(e) => updateRow(originalIndex, row["Actual CBB"] || 0, parseFloat(e.target.value) || 0)}
-                                className="w-full px-4 py-2 bg-slate-50 border-2 border-transparent rounded-xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm font-black text-slate-900 shadow-inner"
+                                className="w-full px-5 py-3 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100 outline-none transition-all text-sm font-black text-slate-900 shadow-inner"
                               />
                             </div>
                           </td>
@@ -97,12 +102,12 @@ export default function StockTable() {
                       if (header === "Status") {
                         const status = row[header] || 'Equal';
                         return (
-                          <td key={header} className="px-6 py-4">
+                          <td key={header} className="px-8 py-5">
                             <span className={`
-                              inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider
-                              ${status === 'Excess' ? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-100' : 
-                                status === 'Shortage' ? 'bg-rose-100 text-rose-700 shadow-sm shadow-rose-100' : 
-                                'bg-slate-100 text-slate-500'}
+                              inline-flex items-center px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.15em] shadow-sm
+                              ${status === 'Excess' ? 'bg-emerald-500 text-white glow-emerald' : 
+                                status === 'Shortage' ? 'bg-rose-500 text-white glow-rose' : 
+                                'bg-slate-100 text-slate-400'}
                             `}>
                               {status}
                             </span>
@@ -115,18 +120,16 @@ export default function StockTable() {
                       const isSKU = header === "Parent SKU";
                       const isDesc = header === "Parent SKU Desc";
                       
-                      const diffColor = isDifference ? (row[header] > 0 ? 'text-emerald-600' : row[header] < 0 ? 'text-rose-600' : 'text-slate-400') : '';
+                      const diffColor = isDifference ? (row[header] > 0 ? 'text-emerald-600 font-black' : row[header] < 0 ? 'text-rose-600 font-black' : 'text-slate-300') : '';
                       
                       let displayValue = row[header];
-                      if (isNumeric && isNaN(displayValue)) {
-                        displayValue = '0.00';
-                      }
+                      if (isNumeric && isNaN(displayValue)) displayValue = '0.00';
 
                       return (
                         <td key={header} className={`
-                          px-6 py-4 text-sm
-                          ${isSKU ? 'font-black text-slate-900 tracking-tight' : ''}
-                          ${isDesc ? 'font-medium text-slate-600 max-w-[200px] truncate' : ''}
+                          px-8 py-5 text-sm
+                          ${isSKU ? 'font-black text-slate-900 tracking-tighter' : ''}
+                          ${isDesc ? 'font-bold text-slate-600 max-w-[250px] truncate' : ''}
                           ${isNumeric ? 'font-mono' : ''}
                           ${diffColor}
                         `}>
@@ -141,14 +144,6 @@ export default function StockTable() {
           </tbody>
         </table>
       </div>
-      {filteredDataset.length === 0 && (
-        <div className="py-32 text-center">
-          <div className="bg-slate-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-4xl text-slate-200">🔍</span>
-          </div>
-          <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">No matching inventory records</p>
-        </div>
-      )}
-    </div>
+    </motion.div>
   );
 }
