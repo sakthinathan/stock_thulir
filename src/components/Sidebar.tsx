@@ -21,6 +21,13 @@ export default function Sidebar() {
   const { logout, fullDataset, currentView, setCurrentView } = useStockStore();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  const handleDownload = () => {
+    const ws = XLSX.utils.json_to_sheet(fullDataset);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Stock Report");
+    XLSX.writeFile(wb, `Stock_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   const navItems = [
     { id: 'dashboard', icon: <LayoutDashboard size={20} />, label: "Dashboard" },
     { id: 'inventory', icon: <Database size={20} />, label: "Inventory" },
