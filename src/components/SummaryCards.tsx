@@ -2,31 +2,29 @@
 
 import { useStockStore } from '@/store/useStockStore';
 import { motion } from 'framer-motion';
-import { Package, PackagePlus, PackageMinus } from 'lucide-react';
+import { CheckCircle, AlertTriangle, ThumbsUp } from 'lucide-react';
 
 export default function SummaryCards() {
-  const { fullDataset } = useStockStore();
+  const { filteredDataset } = useStockStore();
 
-  const totals = fullDataset.reduce((acc, row) => {
-    acc.diffCbb += row["Difference in CBB"] || 0;
-    acc.diffPkt += row["Difference in PKT"] || 0;
-    return acc;
-  }, { diffCbb: 0, diffPkt: 0 });
+  const totalItems = filteredDataset.length;
+  const auditedItems = filteredDataset.filter(r => (r["Actual CBB"] || 0) > 0 || (r["Actual PKT"] || 0) > 0).length;
+  const mismatchedItems = filteredDataset.filter(r => r["Status"] !== 'Equal' && ((r["Actual CBB"] || 0) > 0 || (r["Actual PKT"] || 0) > 0)).length;
 
   const cards = [
     {
-      title: "Total Difference (CBB)",
-      value: totals.diffCbb.toFixed(2),
-      icon: <Package size={24} />,
-      color: totals.diffCbb > 0 ? "text-emerald-600 bg-emerald-50 border-emerald-100" : 
-             totals.diffCbb < 0 ? "text-red-600 bg-red-50 border-red-100" : "text-gray-600 bg-gray-50 border-gray-100"
+      title: "Audit Completion",
+      value: `${auditedItems}/${totalItems}`,
+      suffix: "SKUs",
+      icon: <CheckCircle size={28} strokeWidth={2.5} />,
+      color: "text-indigo-600 bg-indigo-50 border-indigo-100"
     },
     {
-      title: "Total Difference (PKT)",
-      value: totals.diffPkt.toFixed(2),
-      icon: totals.diffPkt > 0 ? <PackagePlus size={24} /> : <PackageMinus size={24} />,
-      color: totals.diffPkt > 0 ? "text-emerald-600 bg-emerald-50 border-emerald-100" : 
-             totals.diffPkt < 0 ? "text-red-600 bg-red-50 border-red-100" : "text-gray-600 bg-gray-50 border-gray-100"
+      title: "Critical Issues",
+      value: mismatchedItems.toString(),
+      suffix: mismatchedItems > 1 ? "Errors" : "Error",
+      icon: mismatchedItems > 0 ? <AlertTriangle size={28} strokeWidth={2.5} /> : <ThumbsUp size={28} strokeWidth={2.5} />,
+      color: mismatchedItems > 0 ? "text-red-600 bg-red-50 border-red-100" : "text-emerald-600 bg-emerald-50 border-emerald-100"
     }
   ];
 
@@ -75,7 +73,7 @@ export default function SummaryCards() {
               <p className={`text-6xl font-black font-mono tracking-tighter ${card.color.split(' ')[0]}`}>
                 {card.value}
               </p>
-              <span className="text-sm font-black opacity-30 uppercase tracking-[0.2em]">units</span>
+              <span className="text-sm font-black opacity-30 uppercase tracking-[0.2em]">{card.suffix}</span>
             </div>
           </div>
 
