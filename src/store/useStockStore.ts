@@ -88,6 +88,10 @@ export const useStockStore = create<StockState>((set, get) => ({
       else if (descUpper.includes("WC") || descUpper.includes("WINKIN") || descUpper.includes("WINKIN COW")) {
         brand = "Winkin";
       }
+      // Special handling for Nutri Choice (NC, NUTRICEHOICE)
+      else if (descUpper.includes("NC") || descUpper.includes("NUTRICHOICE") || descUpper.includes("NUTRI CHOICE")) {
+        brand = "Nutri Choice";
+      }
       else {
         const detectedBrand = BRAND_KEYWORDS.find(b => descUpper.includes(b.toUpperCase()));
         if (detectedBrand) {
