@@ -84,6 +84,10 @@ export const useStockStore = create<StockState>((set, get) => ({
       else if (descUpper.includes("MG") || descUpper.includes("MARIEGOLD") || descUpper.includes("MARIE GOLD")) {
         brand = "Marie Gold";
       }
+      // Special handling for Winkin (WC, WINKIN, WINKIN COW)
+      else if (descUpper.includes("WC") || descUpper.includes("WINKIN") || descUpper.includes("WINKIN COW")) {
+        brand = "Winkin";
+      }
       else {
         const detectedBrand = BRAND_KEYWORDS.find(b => descUpper.includes(b.toUpperCase()));
         if (detectedBrand) {
