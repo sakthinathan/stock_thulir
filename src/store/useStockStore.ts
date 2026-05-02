@@ -75,11 +75,17 @@ export const useStockStore = create<StockState>((set, get) => ({
       
       // Auto-detect brand from description for better filtering
       const descUpper = desc.toUpperCase();
-      const detectedBrand = BRAND_KEYWORDS.find(b => descUpper.includes(b.toUpperCase()));
-      if (detectedBrand) {
-        brand = detectedBrand;
-      } else if (brand === "Biscuits , Cake&Rusk" || brand === "General") {
-        brand = "Others";
+      
+      // Special handling for Good Day (GD, GOODDAY)
+      if (descUpper.includes("GD") || descUpper.includes("GOODDAY") || descUpper.includes("GOOD DAY")) {
+        brand = "Good Day";
+      } else {
+        const detectedBrand = BRAND_KEYWORDS.find(b => descUpper.includes(b.toUpperCase()));
+        if (detectedBrand) {
+          brand = detectedBrand;
+        } else if (brand === "Biscuits , Cake&Rusk" || brand === "General") {
+          brand = "Others";
+        }
       }
       
       // Calculate MRP from Sellable Stock Val / Good Qty if MRP is missing
