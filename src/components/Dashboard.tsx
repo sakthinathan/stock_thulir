@@ -49,7 +49,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-mesh text-slate-900 selection:bg-indigo-100 flex relative overflow-hidden">
+    <div className="min-h-screen bg-mesh text-slate-900 selection:bg-indigo-100 flex relative">
       {/* Sidebar */}
       <Sidebar />
 

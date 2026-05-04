@@ -39,7 +39,7 @@ export default function Sidebar() {
     <motion.aside
       initial={false}
       animate={{ width: isCollapsed ? 80 : 280 }}
-      className="glass h-screen sticky top-0 z-50 border-r border-white/40 flex flex-col transition-all duration-500 ease-in-out shadow-[20px_0_40px_-20px_rgba(0,0,0,0.05)]"
+      className="glass h-screen sticky top-0 z-50 border-r border-white/40 flex flex-col transition-all duration-500 ease-in-out shadow-[20px_0_40px_-20px_rgba(0,0,0,0.05)] overflow-y-auto scrollbar-none"
     >
       {/* Logo Section */}
       <div className="p-6 mb-8 flex items-center gap-4 overflow-hidden">
